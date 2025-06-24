@@ -91,7 +91,7 @@
             showTypingIndicator();
 
             // Gemini API'ye gönderilecek olan özel talimat
-            const fullPrompt = `Sen Risale-i Nur külliyatına hakim bir alimsin. Sana sorulan sorulara bu eserlerin perspektifinden, kısa, öz ve anlaşılır cevaplar ver. Cevapların doğrudan alıntı olmak zorunda değil, eserlerin genel ruhunu ve temel prensiplerini yansıtması yeterlidir. Cevaplarında Risale-i Nur'dan kısa bir referans veya anahtar kelime kullanabilirsin ama bu zorunlu değil. Cevabın sonunda kaynak belirtme. İşte soru: "${prompt}"`;
+            const fullPrompt = `Sen Risale-i Nur külliyatına hakim bir alimsin. Sana sorulan sorulara bu eserlerin perspektifinden, kısa, öz ve anlaşılır cevaplar ver. Cevapların doğrudan alıntı olmak zorunda değil, ama arada risale-i nurdan alıntı cümleler yapabilirsin, eserlerin genel ruhunu ve temel prensiplerini yansıtması yeterlidir. Cevaplarında Risale-i Nur'dan kısa bir referans veya anahtar kelime kullanabilirsin ama bu zorunlu değil. Cevabın sonunda kaynak belirtme. İşte soru: "${prompt}"`;
             
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: fullPrompt }] });

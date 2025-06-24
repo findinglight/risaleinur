@@ -88,15 +88,28 @@
         async function getBotResponse(prompt) {
             submitButton.disabled = true;
             errorContainer.textContent = '';
+            
+            // ---- ÖNEMLİ DEĞİŞİKLİK ----
+            // 1. ADIM: Google AI Studio'dan kendi ücretsiz API anahtarınızı alın.
+            // Adres: https://aistudio.google.com/
+            // 2. ADIM: Aldığınız API anahtarını aşağıdaki tırnak işaretlerinin arasına yapıştırın.
+            const apiKey = "AIzaSyB2rT0YUazsdWfpnPoHpBCvE4RuuYEL13o";
+
+            // API anahtarının girilip girilmediğini kontrol et
+            if (apiKey === "AIzaSyB2rT0YUazsdWfpnPoHpBCvE4RuuYEL13o" || apiKey === "") {
+                errorContainer.textContent = "Lütfen kod içerisindeki API anahtarını güncelleyin.";
+                displayMessage("Uygulama doğru şekilde yapılandırılmamış. Lütfen API anahtarını kontrol edin.", 'bot', true);
+                submitButton.disabled = false;
+                return;
+            }
+            
             showTypingIndicator();
 
-            // Gemini API'ye gönderilecek olan özel talimat
-            const fullPrompt = `Sen Risale-i Nur külliyatına hakim bir alimsin. Sana sorulan sorulara bu eserlerin perspektifinden, kısa, öz ve anlaşılır cevaplar ver. Cevapların doğrudan alıntı olmak zorunda değil, ama arada risale-i nurdan alıntı cümleler yapabilirsin, eserlerin genel ruhunu ve temel prensiplerini yansıtması yeterlidir. Cevaplarında Risale-i Nur'dan kısa bir referans veya anahtar kelime kullanabilirsin ama bu zorunlu değil. Cevabın sonunda kaynak belirtme. İşte soru: "${prompt}"`;
+            const fullPrompt = `Sen Risale-i Nur külliyatına hakim bir alimsin. Sana sorulan sorulara bu eserlerin perspektifinden, kısa, öz ve anlaşılır cevaplar ver. Cevapların doğrudan alıntı olmak zorunda değil, ancak arada bir hangi eserde geçtiğini söyleyebilirsin, eserlerin genel ruhunu ve temel prensiplerini yansıtması yeterlidir. Cevaplarında Risale-i Nur'dan kısa bir referans veya anahtar kelime kullanabilirsin ama bu zorunlu değil. Cevabın sonunda kaynak belirtme. İşte soru: "${prompt}"`;
             
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: fullPrompt }] });
             const payload = { contents: chatHistory };
-            const apiKey = ""; // Canvas ortamı tarafından otomatik sağlanacaktır
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risale-i Nur Işığında Cevaplar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Özel kaydırma çubuğu stilleri */
+        #chat-window::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-window::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        #chat-window::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 10px;
+            border: 3px solid #f1f5f9;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-2xl h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl m-4">
+        <!-- Başlık Bölümü -->
+        <header class="p-4 border-b border-slate-200 bg-slate-50 rounded-t-2xl text-center">
+            <h1 class="text-xl font-bold text-slate-800">Risale-i Nur Işığında Cevaplar</h1>
+            <p class="text-sm text-slate-500 mt-1">Sorularınıza Risale-i Nur'dan ilhamla kısa ve öz yanıtlar.</p>
+        </header>
+
+        <!-- Sohbet Mesajları Alanı -->
+        <main id="chat-window" class="flex-1 p-6 overflow-y-auto space-y-6">
+            <!-- Başlangıç Mesajı -->
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                </div>
+                <div class="bg-slate-200 text-slate-800 p-3 rounded-lg max-w-md">
+                    <p class="text-sm">Esselamu Aleyküm. İman, hayat, kainat veya aklınıza takılan herhangi bir konuda merak ettiğiniz bir suali sorabilirsiniz.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Hata Mesajı Alanı -->
+        <div id="error-container" class="px-6 pb-2 text-center text-red-500 text-sm"></div>
+
+        <!-- Yazı Yazma Alanı -->
+        <footer class="p-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+            <form id="chat-form" class="flex items-center gap-3">
+                <input type="text" id="user-input" class="flex-1 w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Sorunuzu buraya yazın..." autocomplete="off">
+                <button type="submit" id="submit-button" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 flex items-center justify-center disabled:bg-blue-300 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const submitButton = document.getElementById('submit-button');
+        const errorContainer = document.getElementById('error-container');
+
+        // Form gönderildiğinde çalışacak fonksiyon
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            // Kullanıcının mesajını ekranda göster
+            displayMessage(userMessage, 'user');
+            userInput.value = '';
+            userInput.focus();
+
+            // Botun cevap vermesini bekle
+            await getBotResponse(userMessage);
+        });
+
+        // Bot cevabını almak için Gemini API'sini çağıran fonksiyon
+        async function getBotResponse(prompt) {
+            submitButton.disabled = true;
+            errorContainer.textContent = '';
+            showTypingIndicator();
+
+            // Gemini API'ye gönderilecek olan özel talimat
+            const fullPrompt = `Sen Risale-i Nur külliyatına hakim bir alimsin. Sana sorulan sorulara bu eserlerin perspektifinden, kısa, öz ve anlaşılır cevaplar ver. Cevapların doğrudan alıntı olmak zorunda değil, eserlerin genel ruhunu ve temel prensiplerini yansıtması yeterlidir. Cevaplarında Risale-i Nur'dan kısa bir referans veya anahtar kelime kullanabilirsin ama bu zorunlu değil. Cevabın sonunda kaynak belirtme. İşte soru: "${prompt}"`;
+            
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: fullPrompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas ortamı tarafından otomatik sağlanacaktır
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API hatası: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                let botResponseText = "Üzgünüm, şu anda bir cevap üretemiyorum. Lütfen daha sonra tekrar deneyin.";
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                     botResponseText = result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("API'den beklenen formatta cevap alınamadı:", result);
+                }
+                 displayMessage(botResponseText, 'bot');
+            } catch (error) {
+                console.error("API çağrısı sırasında bir hata oluştu:", error);
+                errorContainer.textContent = "Cevap alınırken bir hata oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.";
+                displayMessage("Üzgünüm, bir hata ile karşılaştım ve sorunuzu cevaplayamıyorum.", 'bot', true);
+            } finally {
+                removeTypingIndicator();
+                submitButton.disabled = false;
+            }
+        }
+
+        // Mesajları ekranda göstermek için yardımcı fonksiyon
+        function displayMessage(message, sender, isError = false) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `flex items-start gap-3 ${sender === 'user' ? 'justify-end' : ''}`;
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `p-3 rounded-lg max-w-md text-sm`;
+
+            if (sender === 'user') {
+                messageBubble.classList.add('bg-blue-600', 'text-white');
+            } else {
+                if(isError) {
+                    messageBubble.classList.add('bg-red-100', 'text-red-800');
+                } else {
+                    messageBubble.classList.add('bg-slate-200', 'text-slate-800');
+                }
+            }
+            messageBubble.innerText = message;
+            
+            // Avatar oluşturma
+            const avatar = document.createElement('div');
+            avatar.className = 'flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold';
+
+            if (sender === 'user') {
+                avatar.classList.add('bg-slate-300', 'text-slate-600');
+                avatar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+                messageContainer.append(messageBubble, avatar);
+            } else {
+                avatar.classList.add('bg-blue-500', 'text-white');
+                avatar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>';
+                messageContainer.append(avatar, messageBubble);
+            }
+
+            chatWindow.appendChild(messageContainer);
+            chatWindow.scrollTop = chatWindow.scrollHeight; // En alta kaydır
+        }
+
+        // Botun "yazıyor..." animasyonunu gösterir
+        function showTypingIndicator() {
+            const typingIndicator = document.createElement('div');
+            typingIndicator.id = 'typing-indicator';
+            typingIndicator.className = 'flex items-start gap-3';
+            typingIndicator.innerHTML = `
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                </div>
+                <div class="bg-slate-200 text-slate-800 p-3 rounded-lg max-w-md flex items-center space-x-1">
+                    <span class="text-sm">Yazıyor</span>
+                    <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style="animation-delay: -0.3s;"></div>
+                    <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style="animation-delay: -0.15s;"></div>
+                    <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></div>
+                </div>`;
+            chatWindow.appendChild(typingIndicator);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // "yazıyor..." animasyonunu kaldırır
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+    </script>
+</body>
+</html>
